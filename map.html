@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Sam's Gas Prices</title>
+	<link rel="icon" type="image/x-icon" href="/gas.svg">
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+	
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+	
+	<style>
+/* 
+	Colors:
+		background is #F5E7DE
+		foreground is #F2BFA4
+		box shadows is #E2B09B
+*/	
+
+* {
+	padding: 0;
+	margin: 0;
+}	
+
+html, body {
+	height: 100%;
+}
+
+#map {
+	height: 100%;
+	width: 60%;
+	display: flex;
+	float: right;
+}
+
+#lefttext {
+	background-color: #F5E7DE;
+	float: left;
+	width: calc(40% - 3px);
+	height: 100%;
+	text-align: left;
+	border-right-width: 3px;
+	border-right-color: black;
+	border-right-style: solid;
+}
+
+#lefttext #h1decor2 {
+	margin-bottom: 1.5em;
+	padding-bottom: 0.2em;
+	border-bottom: 0.2em solid #F2BFA4;
+}
+
+#lefttext #h1decor {
+	padding-bottom: 0.2em;
+	border-bottom: 1em solid #F2BFA4;
+}
+
+#lefttext #h1decor h1 {
+	padding-left: 0.5em;
+	background-color: #F2BFA4;
+	padding-top: 2em;
+	padding-bottom: 1.5em;
+	font-family: Playfair Display;
+	font-style: italic;
+	text-decoration: underline;
+	text-underline-offset: 0.2em;
+	text-decoration-thickness: 1.5px;
+}
+
+#lefttext #userinputs {
+	padding: 1em;
+	margin-right: 10%;
+	background-color: #F2BFA4;
+	box-shadow: 1em 1em #E2B09B;
+}
+
+#lefttext #userinputs div{
+	height: 5%;
+	background-color: #F2BFA4;
+	display: flex;
+	padding-bottom: 2em;
+}
+
+#lefttext #userinputs div p {
+	width: calc(10vw + 6em);
+	font-size: calc(0.6em + 0.5vw);
+	height: 50%;
+	top: 50%;
+	padding-left: 0.5em;
+	transform: translate(0, 50%);
+	text-align: right;
+	padding-right: 1em;
+	font-family: Sans-Serif;
+}
+
+#lefttext #userinputs div input {
+	background-color: #F2BFA4;
+	width: 60%;
+	transform: translate(0, 40%);
+	border: none;
+	border-bottom: 1px solid black;
+	font-size: calc(0.5em + 0.5vw);
+}
+
+#left-side #userinputs #userinputftype {
+	padding-bottom: 0;
+}
+
+#lefttext #userinputs #userinputftype #checktextbox {
+	transform: translate(-13%, 50%);
+}
+
+#lefttext #userinputs div #check {
+	background-color: #F2BFA4;
+	width: 40%;
+	margin-left: 0;
+	margin-right: 0;
+	padding-bottom: 0;
+	transform: translate(-15%, 0%);
+}
+
+#lefttext #userinputs div #check input {
+	border: none;
+	padding: none;
+	margin: none;
+}
+
+	</style>
+</head>
+<body>
+	<div id = "lefttext">
+		<div id = "h1decor2">
+			<div id = "h1decor">
+				<h1>Sam's Gas Prices</h1>
+			</div>
+		</div>
+		
+		<div id = "userinputs">
+			<div id = "userinputsz">
+				<p>Enter your zipcode</p>
+				<input type="text" placeholder="Zipcode">
+			</div>
+			
+			<div id = "userinputspmin">
+				<p>Enter your min price</p>
+				<input type="text" placeholder="Min Price">
+			</div>
+			
+			<div id = "userinputspmax">
+				<p>Enter your max price</p>
+				<input type="text" placeholder="Max Price">
+			</div>
+				
+			<div id = "userinputftype">
+				<p id = "checktextbox">Select your Fuel Type</p>
+				<div id = "check">
+					<input type="checkbox">
+					<p>unleaded</p>
+					<input type="checkbox">
+					<p>premium</p>
+				</div>
+			</div>
+		</div>
+			
+	</div>
+	<div id="map"></div>
+<script>
+let map = L.map('map').setView([38.25, -85.65], 11);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+fetch("/sams.csv").then(response => response.text()).then(r => {
+r = r.split("\n");
+for (s of r) {
+	s=s.split(",");
+	L.marker([s[2],s[3]]).bindPopup("<table><tr><th>Unleaded</th><th>$"+s[0]+"</th></tr><tr><th>Premium</th><th>$"+s[1]+"</th></tr></table>").addTo(map)
+}
+})
+</script>
+</body>
+</html>
