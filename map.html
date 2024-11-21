@@ -36,6 +36,22 @@ html, body {
 	float: right;
 }
 
+.price-marker {
+	border-radius: 50%;
+	text-align: center;
+	width: 40px;
+	height: 30px;
+	line-height: 30px;
+	font-size: 14px;
+	font-weight: bold;	
+}
+.costco {
+	background-color: rgba(227, 42, 54, 0.5);
+}
+.sams {
+	background-color: rgba(0, 103, 160, 0.5);
+}
+
 #lefttext {
 	background-color: #F5E7DE;
 	float: left;
@@ -168,15 +184,27 @@ html, body {
 	</div>
 	<div id="map"></div>
 <script>
+function createPriceIcon(price, color) {
+    return L.divIcon({
+        className: 'price-icon',
+        html: `<div class="price-marker ${color}">$${price}</div>`,
+        iconSize: [40, 40]
+    });
+}
+
 let map = L.map('map').setView([38.25, -85.65], 11);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-fetch("/sams.csv").then(response => response.text()).then(r => {
-r = r.split("\n");
-for (s of r) {
-	s=s.split(",");
-	L.marker([s[2],s[3]]).bindPopup("<table><tr><th>Unleaded</th><th>$"+s[0]+"</th></tr><tr><th>Premium</th><th>$"+s[1]+"</th></tr></table>").addTo(map)
+function getBrand(store) {
+	fetch(store+".csv").then(response => response.text()).then(csv => {
+		r = csv.split('\n').map(row => row.split(','));
+		for (s of r) {
+			popup="<table><tr><th>Unleaded</th><th>$"+s[0]+"</th></tr><tr><th>Premium</th><th>$"+s[1]+"</th></tr></table>"
+			L.marker([s[2], s[3]], { icon: createPriceIcon(s[0], store) }).bindPopup(popup).addTo(map);
+		}
+	})
 }
-})
+getBrand("costco")
+getBrand("sams")
 </script>
 </body>
 </html>
