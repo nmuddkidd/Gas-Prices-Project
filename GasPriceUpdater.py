@@ -1,8 +1,9 @@
-import mysql.connector;
-import traceback;
+import mysql.connector
+import traceback
+import random
 
-cnx = mysql.connector.connect();
-print("attempting connection to server");
+cnx = mysql.connector.connect()
+print("attempting connection to server")
 
 try:
     cnx = mysql.connector.connect(user='ncmudd01', 
@@ -15,17 +16,27 @@ except:
     print("Connection could not be established")
     exit;
 
-print("connection established");
+print("connection established")
 print(cnx)
 cursor = cnx.cursor()
-"""cursor.execute("SHOW DATABASES")
+cursor.execute("SELECT MIN(history_id) FROM Price_History")
 
-for x in cursor:
-    print(x)"""
+minimum = 1
+values = "INSERT INTO Price_History VALUES "
+data = cursor.fetchall()
+minimum = data[0][0]
+for x in range(0,100):
+    ID = minimum - x - 1
+    dollars = random.randint(0,9)
+    cents = random.randint(1,99)
+    if(x==99):
+        values += "("+str(ID)+","+str(-1*random.randint(1,100))+",\"unleaded\","+str(dollars)+'.'+str(cents)+",\""+str(random.randint(1,9999))+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\");"
+    else:
+        values += "("+str(ID)+","+str(-1*random.randint(1,100))+",\"unleaded\","+str(dollars)+'.'+str(cents)+",\""+str(2024)+'-'+str(11)+'-'+str(random.randint(1,30))+"\"),\n"
 
-cursor.execute("INSERT INTO Test VALUES (-1)")
-cnx.commit();
-cnx.close();
+cursor.execute(values)
+cnx.commit()
+cnx.close()
 
 
 
