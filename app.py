@@ -3,6 +3,7 @@ import traceback;
 from flask import Flask, render_template, send_from_directory
 import requests
 import json
+#this is a change
 
 
 class Store:
@@ -73,8 +74,7 @@ if __name__ == '__main__':
 		else:
 			break
 		
-		if (str)
-		location_id+=1
+		
 
 
 			
