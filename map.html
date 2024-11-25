@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Sam's Gas Prices</title>
-	<link rel="icon" type="image/x-icon" href="/gas.svg">
+	<!--<link rel="icon" type="image/x-icon" href="/gas.svg">-->
 	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 	
@@ -34,6 +34,22 @@ html, body {
 	width: 60%;
 	display: flex;
 	float: right;
+}
+
+.price-marker {
+	border-radius: 50%;
+	text-align: center;
+	width: 40px;
+	height: 30px;
+	line-height: 30px;
+	font-size: 14px;
+	font-weight: bold;	
+}
+.costco {
+	background-color: rgba(227, 42, 54, 0.5);
+}
+.sams {
+	background-color: rgba(0, 103, 160, 0.5);
 }
 
 #lefttext {
@@ -111,6 +127,7 @@ html, body {
 
 #lefttext #userinputs #userinputftype #checktextbox {
 	transform: translate(-13%, 50%);
+
 }
 
 #lefttext #userinputs div #check {
@@ -168,15 +185,36 @@ html, body {
 	</div>
 	<div id="map"></div>
 <script>
+function createPriceIcon(price, color) {
+    return L.divIcon({
+        className: 'price-icon',
+        html: `<div class="price-marker ${color}">$${price}</div>`,
+        iconSize: [40, 40]
+    });
+}
+
 let map = L.map('map').setView([38.25, -85.65], 11);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-fetch("/sams.csv").then(response => response.text()).then(r => {
+
+/*fetch("/sams.csv").then(response => response.text()).then(r => {
 r = r.split("\n");
 for (s of r) {
 	s=s.split(",");
 	L.marker([s[2],s[3]]).bindPopup("<table><tr><th>Unleaded</th><th>$"+s[0]+"</th></tr><tr><th>Premium</th><th>$"+s[1]+"</th></tr></table>").addTo(map)
+*/
+function getBrand(store) {
+	fetch("csvs/"+store+".csv").then(response => response.text()).then(csv => {
+		r = csv.split('\n').map(row => row.split(','));
+		for (s of r) {
+			popup="<table><tr><th>Unleaded</th><th>$"+s[0]+"</th></tr><tr><th>Premium</th><th>$"+s[1]+"</th></tr></table>"
+			L.marker([s[2], s[3]], { icon: createPriceIcon(s[0], store) }).bindPopup(popup).addTo(map);
+			//L.marker([38.25, -85.65], { icon: createPriceIcon(s[0], store) }).bindPopup(popup).addTo(map);
+			console.log([s[2],s[3]]);
+		}
+	})
 }
-})
+getBrand("costco")
+getBrand("sams")
 </script>
 </body>
 </html>
