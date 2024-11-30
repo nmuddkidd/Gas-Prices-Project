@@ -32,7 +32,7 @@ for x in range(0,100):
     if(x==99):
         values += "("+str(ID)+","+str(-1*random.randint(1,100))+",\"unleaded\","+str(dollars)+'.'+str(cents)+",\""+str(random.randint(1,9999))+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\");"
     else:
-        values += "("+str(ID)+","+str(-1*random.randint(1,100))+",\"unleaded\","+str(dollars)+'.'+str(cents)+",\""+str(2024)+'-'+str(11)+'-'+str(random.randint(1,30))+"\"),\n"
+        values += "("+str(ID)+","+str(-42)+",\"unleaded\","+str(dollars)+'.'+str(cents)+",\""+str(2024)+'-'+str(11)+'-'+str(random.randint(1,30))+"\"),\n"
 
 cursor.execute(values)
 cnx.commit()

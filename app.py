@@ -44,7 +44,12 @@ if __name__ == '__main__':
 	print(cnx)
 	cursor = cnx.cursor()
 	
-	try:
+	cursor.execute("INSERT INTO Legacy_Price_History (legacy_price_history_id,location_id,week,year,price,fuel_type) SELECT ROW_NUMBER() OVER (ORDER BY history_id) + (SELECT MAX(legacy_price_history_id) FROM Legacy_Price_History), location_id, MONTH(date_recorded), YEAR(date_recorded), AVG(price), fuel_type FROM Price_History WHERE (MONTH(date_recorded) <= MONTH(NOW()) AND YEAR(date_recorded) = YEAR(NOW())) OR YEAR(Price_History.date_recorded) < YEAR(NOW()) GROUP BY location_id, fuel_type, YEAR(date_recorded), MONTH(date_recorded) SELECT * FROM Legacy_Price_History;")
+
+	cnx.commit()
+	cnx.close()
+
+	"""try:
 		sql = "SELECT * FROM  Price_History ORDER BY history_id DESC"
 		cursor.execute(sql)
 
@@ -72,7 +77,7 @@ if __name__ == '__main__':
 			sum_premium+= store.price
 			total_premium+=1
 		else:
-			break
+			break"""
 		
 		
 
