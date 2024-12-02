@@ -19,12 +19,29 @@ def legacyDataCreation():
     #Demotes data from active history into legacy data by month
     #WARNING: Needs a value to base MAX(Legacy_id) off of however this can be fixed
     #TODO: fix that (easy)
-    cursor.execute("INSERT INTO Legacy_Price_History (legacy_price_history_id,location_id,week,year,price,fuel_type) SELECT ROW_NUMBER() OVER (ORDER BY history_id) + (SELECT MAX(legacy_price_history_id) FROM Legacy_Price_History), location_id, MONTH(date_recorded), YEAR(date_recorded), AVG(price), fuel_type FROM Price_History WHERE (MONTH(date_recorded) < MONTH(NOW()) AND YEAR(date_recorded) = YEAR(NOW())) OR YEAR(Price_History.date_recorded) < YEAR(NOW()) GROUP BY location_id, fuel_type, YEAR(date_recorded), MONTH(date_recorded);")
+    cursor.execute("INSERT INTO Legacy_Price_History (legacy_price_history_id,location_id,week,year,price,fuel_type) SELECT ROW_NUMBER() OVER (ORDER BY history_id) + (SELECT MAX(IFNULL(legacy_price_history_id, 0)) FROM Legacy_Price_History), location_id, MONTH(date_recorded), YEAR(date_recorded), AVG(price), fuel_type FROM Price_History WHERE (MONTH(date_recorded) < MONTH(NOW()) AND YEAR(date_recorded) = YEAR(NOW())) OR YEAR(Price_History.date_recorded) < YEAR(NOW()) GROUP BY location_id, fuel_type, YEAR(date_recorded), MONTH(date_recorded);")
     cursor.execute("DELETE FROM Price_History WHERE (MONTH(date_recorded) < MONTH(NOW()) AND YEAR(date_recorded) = YEAR(NOW())) OR YEAR(Price_History.date_recorded) < YEAR(NOW())")
 
 def priceJunk():
     #TODO: Throw junk values into price table - not sure if needed (easy)
     #NOTE: test data is denoted by a NEGATIVE dollar value
+
+    cursor.execute("SELECT MAX(IFNULL(price_id, 0)) FROM Prices")
+    values = "INSERT INTO Prices VALUES "
+    data = cursor.fetchall()
+
+    maximum = data[0][0]
+    for x in range (1, 501):
+        ID = maximum + x
+        dollars = -1 * random.randint(0,9)
+        cents = -1 * random.randint(1,99)
+        if(x!=500):
+            values += "(" + str(ID) + ", " + str(dollars) + "." + str(cents) + ", " + str(-1 * random.randint(1,10)) + ", \"unleaded\", " + str(2024) + '-' + str(10) + '-' +str(random.randint(1,30)) + "\"),\n"
+        else:
+            values += "(" + str(ID) + ", " + str(dollars) + "." + str(cents) + ", " + str(-1 * random.randint(1,10)) + ", \"unleaded\", " + str(2024) + '-' + str(10) + '-' +str(random.randint(1,30)) + "\")"
+    
+    cursor.execute(values)
+    
     return 0
 
 def historyJunk():
@@ -36,7 +53,7 @@ def historyJunk():
     data = cursor.fetchall()
     maximum = data[0][0]
     if(maximum == None):
-        maximum = 0;
+        maximum = 0
     for x in range(0,100):
         ID = maximum + x + 1
         dollars = -1*random.randint(0,9)
@@ -66,8 +83,9 @@ print(cnx)
 cursor = cnx.cursor()
 
 #put functions you want here
-historyJunk()
-legacyDataCreation()
+priceJunk()
+#historyJunk()
+#legacyDataCreation()
 
 cnx.commit()
 cnx.close()
