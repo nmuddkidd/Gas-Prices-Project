@@ -1,7 +1,8 @@
 from flask import Flask, render_template, send_from_directory
 from flask_caching import Cache
 import requests
-import MySQLdb
+#import MySQLdb		<-- LITERALLY JUST FOR STEVEN
+import pymysql as MySQLdb		#<-- EVERYONE ON WINDOWS IN YOUR '.venv' DIRECTORY DO 'pip install pymysql' AND USE THIS LINE
 
 db = MySQLdb.connect(
 	host='cse335-fall-2024.c924km8o85q2.us-east-1.rds.amazonaws.com',
