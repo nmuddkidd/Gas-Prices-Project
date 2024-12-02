@@ -185,7 +185,7 @@ html, body {
 		
 		<div id = "userinputs">	<!--  box for everything that the user inputs data into  -->
 			
-			<p id = 'resultTestingZ' class = "inputFailure"></p>	<!--  Zipcode  -->
+			<p id = "zipcodeErrorMessage" class = "inputFailure"></p>	<!--  Zipcode  -->
 			<div id = "userinputsz">
 				<p>Enter your zipcode</p>			
 				<form id="userForm">
@@ -193,7 +193,7 @@ html, body {
 				</form>
 			</div>
 			
-			<p id = 'resultTestingP' class = "inputFailure"></p>	<!--  User MAX and MIN  -->
+			<p id = "priceErrorMessage" class = "inputFailure"></p>	<!--  User MAX and MIN  -->
 			<div id = "userinputspmin">
 				<p>Enter your min price</p>
 				<form id="userForm">
@@ -208,13 +208,13 @@ html, body {
 				</form>
 			</div>
 				
-			<!--  to be added soon  -->
+			<p id = "fuelErrorMessage" class = "inputFailure"></p>
 			<div id = "userinputftype">
 				<p id = "checktextbox">Select your Fuel Type</p>
 				<div id = "check">
-					<input type="checkbox">
+					<input type="checkbox" id = "unleadedFuel">
 					<p>unleaded</p>
-					<input type="checkbox">
+					<input type="checkbox" id = "premiumFuel">
 					<p>premium</p>
 				</div>
 			</div>
@@ -269,6 +269,7 @@ getBrand("sams")
 function inputData() {
 	getZipcode();
 	getPrices();
+	getFuelTypes();
 }
 
 //script for allowing user to input their information
@@ -276,7 +277,7 @@ function inputData() {
 function getZipcode() {
     // Get the value from the input field
     var userZipcode = document.getElementById('userZipcode').value;
-	var result = document.getElementById('resultTestingZ');
+	var result = document.getElementById('zipcodeErrorMessage');
 
 	if(isNumber(parseInt(userZipcode)) && userZipcode.length == 5){
 		result.style.display = "none";
@@ -292,7 +293,7 @@ function getPrices() {
     // Get the value from the input field
     var userPriceMIN = document.getElementById('userPriceMIN').value;
 	var userPriceMAX = document.getElementById('userPriceMAX').value;
-	var result = document.getElementById('resultTestingP');
+	var result = document.getElementById('priceErrorMessage');
 
 	if(userPriceMAX.length == 4 && userPriceMIN.length == 4){
 		if(isNumber(parseFloat(userPriceMIN)) && isNumber(parseFloat(userPriceMAX))){
@@ -310,6 +311,20 @@ function getPrices() {
 	} else {
 		result.style.display = "flex";
 		result.textContent = "* Please enter a number (input: X.XX)";
+	}
+}
+
+function getFuelTypes() {
+	var userFuelTypeU = document.getElementById('unleadedFuel');
+	var userFuelTypeP = document.getElementById('premiumFuel');
+	var result = document.getElementById('fuelErrorMessage');
+
+	if(userFuelTypeU.checked == false && userFuelTypeP.checked == false){
+		result.style.display = "flex";
+		result.textContent = "* Please select at least one fuel type"
+	} else {
+		result.style.display = "none";
+		//send the data here
 	}
 }
 
