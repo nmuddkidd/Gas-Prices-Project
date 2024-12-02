@@ -176,15 +176,16 @@ html, body {
 	</style>
 </head>
 <body>
-	<div id = "lefttext">
-		<div id = "h1decor2">
+	<div id = "lefttext">	<!--  the box for everything on the left side  -->
+		<div id = "h1decor2">	<!--  holds the h1 boxes  -->
 			<div id = "h1decor">
 				<h1>Nearest Gas Prices</h1>
 			</div>
 		</div>
 		
-		<div id = "userinputs">
-			<p id = 'resultTestingZ' class = "inputFailure"></p>
+		<div id = "userinputs">	<!--  box for everything that the user inputs data into  -->
+			
+			<p id = 'resultTestingZ' class = "inputFailure"></p>	<!--  Zipcode  -->
 			<div id = "userinputsz">
 				<p>Enter your zipcode</p>			
 				<form id="userForm">
@@ -192,7 +193,7 @@ html, body {
 				</form>
 			</div>
 			
-			<p id = 'resultTestingP' class = "inputFailure"></p>
+			<p id = 'resultTestingP' class = "inputFailure"></p>	<!--  User MAX and MIN  -->
 			<div id = "userinputspmin">
 				<p>Enter your min price</p>
 				<form id="userForm">
@@ -207,6 +208,7 @@ html, body {
 				</form>
 			</div>
 				
+			<!--  to be added soon  -->
 			<div id = "userinputftype">
 				<p id = "checktextbox">Select your Fuel Type</p>
 				<div id = "check">
@@ -262,13 +264,15 @@ function getBrand(store) {
 }
 getBrand("costco")
 getBrand("sams")
- 
+
+//function for the button to run all the other functions
 function inputData() {
 	getZipcode();
 	getPrices();
 }
 
 //script for allowing user to input their information
+//zipcode function
 function getZipcode() {
     // Get the value from the input field
     var userZipcode = document.getElementById('userZipcode').value;
@@ -283,6 +287,7 @@ function getZipcode() {
 	}
 }
 
+//min max prices button
 function getPrices() {
     // Get the value from the input field
     var userPriceMIN = document.getElementById('userPriceMIN').value;
