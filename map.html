@@ -112,6 +112,13 @@ html, body {
 	font-family: Sans-Serif;
 }
 
+#lefttext #userinputs .inputFailure {
+	font-weight: bold;
+	font-size: 1em;
+	transform: translate(10%, 0);
+	color: rgb(170, 71, 71);
+}
+
 #lefttext #userinputs div form input {
 	background-color: #F2BFA4;
 	width: 100%;
@@ -146,6 +153,24 @@ html, body {
 	border: none;
 	padding: none;
 	margin: none;
+	transform: translate(0, 50%);
+}
+
+#lefttext #userinputs #submitButton {
+	margin-bottom: 0;
+	padding-bottom: 0;
+	margin-top: 0.5em;
+	margin-left: 82%;
+}
+
+#lefttext #userinputs #submitButton button {
+	background-color: #F2BFA4;
+	padding: 0.3em;
+	border-style: solid;
+	border-radius: 1em;
+	border-width: 2px;
+	border-color: #2E282A;
+	color: #2E282A;
 }
 
 	</style>
@@ -159,6 +184,7 @@ html, body {
 		</div>
 		
 		<div id = "userinputs">
+			<p id = 'resultTestingZ' class = "inputFailure"></p>
 			<div id = "userinputsz">
 				<p>Enter your zipcode</p>			
 				<form id="userForm">
@@ -166,6 +192,7 @@ html, body {
 				</form>
 			</div>
 			
+			<p id = 'resultTestingP' class = "inputFailure"></p>
 			<div id = "userinputspmin">
 				<p>Enter your min price</p>
 				<form id="userForm">
@@ -190,19 +217,18 @@ html, body {
 				</div>
 			</div>
 
-			<form id="userForm">
-				<input type="text" id="userInput" name="userInput">
-			</form>
-
-			<button type="button" onclick="getZipcode()">Testing ZIPCODE</button>
-			<button type="button" onclick="getPrices()">Testing PRICES</button>
-			
-			<div>
-				<p id = 'resultTestingZ'></p>
-				<p id = 'resultTestingP'></p>
+			<div id = "submitButton">
+				<button type="button" onclick="inputData()">Submit!</button>
 			</div>
 		</div>
 
+		<!--  used for testing the functions, may need later?  -->
+			<!--
+			<div id = "testing">
+				<button type="button" onclick="getZipcode()">Testing ZIPCODE</button>
+				<button type="button" onclick="getPrices()">Testing PRICES</button>
+			</div>
+			-->
 	</div>
 	<div id="map"></div>
 <script>
@@ -237,6 +263,11 @@ function getBrand(store) {
 getBrand("costco")
 getBrand("sams")
  
+function inputData() {
+	getZipcode();
+	getPrices();
+}
+
 //script for allowing user to input their information
 function getZipcode() {
     // Get the value from the input field
@@ -244,9 +275,11 @@ function getZipcode() {
 	var result = document.getElementById('resultTestingZ');
 
 	if(isNumber(parseInt(userZipcode)) && userZipcode.length == 5){
-		result.textContent = "thanks";
+		result.style.display = "none";
+		//send the data here
 	} else {
-		result.textContent = "Please enter a number";
+		result.style.display = "flex";
+		result.textContent = "* Please enter a proper number (input: XXXXX)";
 	}
 }
 
@@ -256,14 +289,22 @@ function getPrices() {
 	var userPriceMAX = document.getElementById('userPriceMAX').value;
 	var result = document.getElementById('resultTestingP');
 
-	if(isNumber(parseFloat(userPriceMIN)) && isNumber(parseFloat(userPriceMAX))){
-		if(parseFloat(userPriceMIN) >= parsefloat(userPriceMAX)){
-			result.textContent = " ...thanks again";
+	if(userPriceMAX.length == 4 && userPriceMIN.length == 4){
+		if(isNumber(parseFloat(userPriceMIN)) && isNumber(parseFloat(userPriceMAX))){
+			if(parseFloat(userPriceMIN) < parseFloat(userPriceMAX)){
+				result.style.display = "none";
+				//send the data here
+			} else {
+				result.style.display = "flex";
+				result.textContent = "* Need MAX to be more than MIN";
+			}
 		} else {
-			result.textContent = " need MAX to be less than MIN"
+			result.style.display = "flex";
+			result.textContent = "* Please enter a number (input: X.XX)";
 		}
 	} else {
-		result.textContent = "Please enter a number";
+		result.style.display = "flex";
+		result.textContent = "* Please enter a number (input: X.XX)";
 	}
 }
 
