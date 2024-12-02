@@ -15,9 +15,10 @@
 	<style>
 /* 
 	Colors:
-		background is #F5E7DE
+		background is #FAD8D6
 		foreground is #F2BFA4
 		box shadows is #E2B09B
+		text color is #2E282A
 */	
 
 * {
@@ -53,7 +54,8 @@ html, body {
 }
 
 #lefttext {
-	background-color: #F5E7DE;
+	background-color: #FAD8D6;
+	color: #2E282A;
 	float: left;
 	width: calc(40% - 3px);
 	height: 100%;
@@ -77,13 +79,11 @@ html, body {
 #lefttext #h1decor h1 {
 	padding-left: 0.5em;
 	background-color: #F2BFA4;
-	padding-top: 2em;
-	padding-bottom: 1.5em;
+	padding-top: 1em;
+	padding-bottom: 0.5em;
 	font-family: Playfair Display;
-	font-style: italic;
-	text-decoration: underline;
-	text-underline-offset: 0.2em;
-	text-decoration-thickness: 1.5px;
+	font-weight: bold;
+	font-size: 3em;
 }
 
 #lefttext #userinputs {
@@ -112,13 +112,17 @@ html, body {
 	font-family: Sans-Serif;
 }
 
-#lefttext #userinputs div input {
+#lefttext #userinputs div form input {
 	background-color: #F2BFA4;
-	width: 60%;
+	width: 100%;
 	transform: translate(0, 40%);
 	border: none;
 	border-bottom: 1px solid black;
 	font-size: calc(0.5em + 0.5vw);
+}
+
+#lefttext #userinputs div input::placeholder {
+	color: #F5E7DE;
 }
 
 #left-side #userinputs #userinputftype {
@@ -150,24 +154,30 @@ html, body {
 	<div id = "lefttext">
 		<div id = "h1decor2">
 			<div id = "h1decor">
-				<h1>Sam's Gas Prices</h1>
+				<h1>Nearest Gas Prices</h1>
 			</div>
 		</div>
 		
 		<div id = "userinputs">
 			<div id = "userinputsz">
-				<p>Enter your zipcode</p>
-				<input type="text" placeholder="Zipcode" style: "color: white;">
+				<p>Enter your zipcode</p>			
+				<form id="userForm">
+					<input type="text" id="userZipcode" placeholder="Zipcode">
+				</form>
 			</div>
 			
 			<div id = "userinputspmin">
 				<p>Enter your min price</p>
-				<input type="text" placeholder="Min Price">
+				<form id="userForm">
+					<input type="text" id="userPriceMIN" placeholder="Min Price" name="userInput">
+				</form>
 			</div>
 			
 			<div id = "userinputspmax">
 				<p>Enter your max price</p>
-				<input type="text" placeholder="Max Price">
+				<form id="userForm">
+					<input type="text" id="userPriceMAX" placeholder="Max Price" name="userInput">
+				</form>
 			</div>
 				
 			<div id = "userinputftype">
@@ -179,8 +189,20 @@ html, body {
 					<p>premium</p>
 				</div>
 			</div>
-		</div>
+
+			<form id="userForm">
+				<input type="text" id="userInput" name="userInput">
+			</form>
+
+			<button type="button" onclick="getZipcode()">Testing ZIPCODE</button>
+			<button type="button" onclick="getPrices()">Testing PRICES</button>
 			
+			<div>
+				<p id = 'resultTestingZ'></p>
+				<p id = 'resultTestingP'></p>
+			</div>
+		</div>
+
 	</div>
 	<div id="map"></div>
 <script>
@@ -214,6 +236,40 @@ function getBrand(store) {
 }
 getBrand("costco")
 getBrand("sams")
+ 
+//script for allowing user to input their information
+function getZipcode() {
+    // Get the value from the input field
+    var userZipcode = document.getElementById('userZipcode').value;
+	var result = document.getElementById('resultTestingZ');
+
+	if(isNumber(parseInt(userZipcode)) && userZipcode.length == 5){
+		result.textContent = "thanks";
+	} else {
+		result.textContent = "Please enter a number";
+	}
+}
+
+function getPrices() {
+    // Get the value from the input field
+    var userPriceMIN = document.getElementById('userPriceMIN').value;
+	var userPriceMAX = document.getElementById('userPriceMAX').value;
+	var result = document.getElementById('resultTestingP');
+
+	if(isNumber(parseFloat(userPriceMIN)) && isNumber(parseFloat(userPriceMAX))){
+		if(parseFloat(userPriceMIN) >= parsefloat(userPriceMAX)){
+			result.textContent = " ...thanks again";
+		} else {
+			result.textContent = " need MAX to be less than MIN"
+		}
+	} else {
+		result.textContent = "Please enter a number";
+	}
+}
+
+function isNumber(value) {
+    return typeof value === 'number';
+}
 </script>
 </body>
 </html>
