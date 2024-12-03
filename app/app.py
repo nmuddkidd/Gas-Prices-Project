@@ -4,12 +4,21 @@ import requests
 #import MySQLdb		<-- LITERALLY JUST FOR STEVEN
 import pymysql as MySQLdb		#<-- EVERYONE ON WINDOWS IN YOUR '.venv' DIRECTORY DO 'pip install pymysql' AND USE THIS LINE
 
+"""
 db = MySQLdb.connect(
 	host='cse335-fall-2024.c924km8o85q2.us-east-1.rds.amazonaws.com',
 	user='ncmudd01',
 	password='54caf60528',
 	database='student_ncmudd01_db'
 )
+"""
+
+db = MySQLdb.connections.Connection (
+	host = 'cse335-fall-2024.c924km8o85q2.us-east-1.rds.amazonaws.com',
+	user = 'ncmudd01',
+	password = '54caf60528',
+	database = 'student_ncmudd01_db'
+ )
 
 app = Flask(__name__)
 app.config['CACHE_TYPE'] = 'SimpleCache'
@@ -88,5 +97,18 @@ def costcodata():
 	cache.set("costco", data)
 	return data
 
+def mySQLTesting():
+    cursor = db.cursor()
+    
+    cursor.execute("SELECT * FROM gas_prices")
+    output = cursor.fetchall()
+    
+    for i in output:
+        print(i)
+        
+    cursor.close()
+
 if __name__ == '__main__':
-	app.run()
+	#app.run()
+ 
+	mySQLTesting()
