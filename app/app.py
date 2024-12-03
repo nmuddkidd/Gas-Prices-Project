@@ -4,6 +4,7 @@ import requests
 #import MySQLdb		<-- LITERALLY JUST FOR STEVEN
 import pymysql as MySQLdb		#<-- EVERYONE ON WINDOWS IN YOUR '.venv' DIRECTORY DO 'pip install pymysql' AND USE THIS LINE
 
+#begin steven's linux machine compatability
 """
 db = MySQLdb.connect(
 	host='cse335-fall-2024.c924km8o85q2.us-east-1.rds.amazonaws.com',
@@ -12,13 +13,16 @@ db = MySQLdb.connect(
 	database='student_ncmudd01_db'
 )
 """
+#end steven's linux machine compatability
 
+#begin windows vscode implementation
 db = MySQLdb.connections.Connection (
 	host = 'cse335-fall-2024.c924km8o85q2.us-east-1.rds.amazonaws.com',
 	user = 'ncmudd01',
 	password = '54caf60528',
 	database = 'student_ncmudd01_db'
  )
+#end windows vscode implementation
 
 app = Flask(__name__)
 app.config['CACHE_TYPE'] = 'SimpleCache'
@@ -109,6 +113,6 @@ def mySQLTesting():
     cursor.close()
 
 if __name__ == '__main__':
-	#app.run()
+	app.run()
  
 	mySQLTesting()
