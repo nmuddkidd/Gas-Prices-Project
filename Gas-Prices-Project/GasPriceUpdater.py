@@ -19,8 +19,8 @@ def legacyDataCreation():
     #Demotes data from active history into legacy data by month
     #WARNING: Needs a value to base MAX(Legacy_id) off of however this can be fixed
     #TODO: fix that (easy)
-    cursor.execute("INSERT INTO Legacy_Price_History (legacy_price_history_id,location_id,week,year,price,fuel_type) SELECT ROW_NUMBER() OVER (ORDER BY history_id) + (SELECT MAX(IFNULL(legacy_price_history_id, 0)) FROM Legacy_Price_History), location_id, MONTH(date_recorded), YEAR(date_recorded), AVG(price), fuel_type FROM Price_History WHERE (MONTH(date_recorded) < MONTH(NOW()) AND YEAR(date_recorded) = YEAR(NOW())) OR YEAR(Price_History.date_recorded) < YEAR(NOW()) GROUP BY location_id, fuel_type, YEAR(date_recorded), MONTH(date_recorded);")
-    cursor.execute("DELETE FROM Price_History WHERE (MONTH(date_recorded) < MONTH(NOW()) AND YEAR(date_recorded) = YEAR(NOW())) OR YEAR(Price_History.date_recorded) < YEAR(NOW())")
+    cursor.execute("INSERT INTO Legacy_Price_History (location_id,month,year,unleaded_price,premium_price) SELECT location_id, MONTH(record_time), YEAR(record_time), AVG(unleaded_price), AVG(premium_price) FROM Price_History WHERE (MONTH(record_time) < MONTH(NOW()) AND YEAR(record_time) = YEAR(NOW())) OR YEAR(Price_History.record_time) < YEAR(NOW()) GROUP BY location_id, YEAR(record_time), MONTH(record_time);")
+    cursor.execute("DELETE FROM Price_History WHERE (MONTH(record_time) < MONTH(NOW()) AND YEAR(record_time) = YEAR(NOW())) OR YEAR(record_time) < YEAR(NOW())")
 
 def priceJunk():
     #TODO: Throw junk values into price table - not sure if needed (easy)
@@ -36,7 +36,7 @@ def priceJunk():
         if(x!=500):
             values += "(" + str(ID) + ", " + str(random.randint(0,9)) + "." + str(random.randint(1,99)) + ", " + str(-1 * random.randint(1,10)) + ", \"unleaded\", " + str(2024) + '-' + str(10) + '-' +str(random.randint(1,30)) + "\"),\n"
         else:
-            values += "(" + str(ID) + ", " + str(random.randint(0,9)) + "." + str(random.randint(1,99)) + ", " + str(-1 * random.randint(1,10)) + ", \"unleaded\", " + str(2024) + '-' + str(10) + '-' +str(random.randint(1,30)) + "\")"
+            values += "(" + str(ID) + ", " + str(random.randint(0,9)) + "." + str(random.randint(1,99)) + ", " + str(-1 * random.randint(1,10)) + ", \"unleaded\", " + str(2024) + '-' + str(random.randint(1,12)) + '-' +str(random.randint(1,30)) + "\")"
     
     cursor.execute(values)
     
@@ -55,9 +55,9 @@ def historyJunk():
     for x in range(0,100):
         ID = maximum + x + 1
         if(x==99):
-            values += "("+str(ID)+","+str(-1*random.randint(1,100))+",\"unleaded\","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(random.randint(1,9999))+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\");"
+            values += "("+str(ID)+","+str(-1*random.randint(1,10))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(random.randint(1,9999))+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\");"
         else:
-            values += "("+str(ID)+","+str(-1*random.randint(1,10))+",\"unleaded\","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(2024)+'-'+str(10)+'-'+str(random.randint(1,30))+"\"),\n"
+            values += "("+str(ID)+","+str(-1*random.randint(1,10))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(2024)+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\"),\n"
     cursor.execute(values)
 
 cnx = mysql.connector.connect()
@@ -79,7 +79,7 @@ print(cnx)
 cursor = cnx.cursor()
 
 #put functions you want here
-historyJunk()
+legacyDataCreation()
 
 cnx.commit()
 cnx.close()
