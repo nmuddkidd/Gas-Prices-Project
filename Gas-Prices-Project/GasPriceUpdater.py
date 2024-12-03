@@ -27,6 +27,21 @@ def zeUberFunction():
     legacyDataCreation()
 
 #TESTING FUNCTIONS
+def initPriceJunk():
+    #Throws junk data into initial prices
+    #NOTE: test data is denoted by a NEGATIVE dollar value
+
+    values = "INSERT INTO Initial_Prices (location_id,unleaded_price,premium_price) VALUES "
+
+    for x in range (1, 101):
+        if(x==100):
+            values += "("+str(-1*random.randint(1,10))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+");"
+        else:
+            values += "("+str(-1*random.randint(1,10))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+"),\n"
+    cursor.execute(values)
+    
+    return 0
+
 def priceJunk():
     #Throws junk data into prices
     #NOTE: test data is denoted by a NEGATIVE dollar value
@@ -35,24 +50,9 @@ def priceJunk():
 
     for x in range (1, 101):
         if(x==100):
-            values += "("+str(-1*random.randint(1,10))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(random.randint(1,9999))+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\");"
+            values += "("+str(-1*random.randint(1,10))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(random.randint(1,9999))+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\");"
         else:
-            values += "("+str(-1*random.randint(1,10))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(2024)+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\"),\n"
-    cursor.execute(values)
-    
-    return 0
-
-def initPriceJunk():
-    #Throws junk data into initial prices
-    #NOTE: test data is denoted by a NEGATIVE dollar value
-
-    values = "INSERT INTO Initial_Prices (location_id,unleaded_price,premium_price,record_time) VALUES "
-
-    for x in range (1, 101):
-        if(x==100):
-            values += "("+str(-1*random.randint(1,10))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(random.randint(1,9999))+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\");"
-        else:
-            values += "("+str(-1*random.randint(1,10))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(2024)+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\"),\n"
+            values += "("+str(-1*random.randint(1,10))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(2024)+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\"),\n"
     cursor.execute(values)
     
     return 0
@@ -70,10 +70,59 @@ def historyJunk():
     for x in range(0,100):
         ID = maximum + x + 1
         if(x==99):
-            values += "("+str(ID)+","+str(-1*random.randint(1,10))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(random.randint(1,9999))+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\");"
+            values += "("+str(ID)+","+str(-1*random.randint(1,10))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(random.randint(1,9999))+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\");"
         else:
-            values += "("+str(ID)+","+str(-1*random.randint(1,10))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(2024)+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\"),\n"
+            values += "("+str(ID)+","+str(-1*random.randint(1,10))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(2024)+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\"),\n"
     cursor.execute(values)
+
+def junker():
+    #Puts old junk on Prices and new junk on initial Prices
+    initPriceJunk()
+    priceJunk()
+
+def clear():
+    #Truncates all tables
+    #NOTE: Needs password
+    print("WARNING This will delete ALL data across ALL tables")
+    password = input("Database Password: ")
+    if(password == "54caf60528"):
+        print("Cleaning Database...")
+        cursor.execute("TRUNCATE Prices;")
+        cursor.execute("TRUNCATE Initial_Prices;")
+        cursor.execute("TRUNCATE Price_History;")
+        cursor.execute("TRUNCATE Legacy_Price_History;")
+    else:
+        print("Incorrect Password No Data Modified")
+
+def testClear():
+    print("WARNING Attempting to delete all test data, but may have unintended consequences")
+    password = input("Proceed? (Y/N): ")
+    if(password == "Y" or password == "y"):
+        print("Cleaning Test Data...")
+        cursor.execute("DELETE FROM Prices WHERE location_id < 0 OR unleaded_price < 0 OR premium_price < 0;")
+        cursor.execute("DELETE FROM Initial_Prices WHERE location_id < 0 OR unleaded_price < 0 OR premium_price < 0;")
+        cursor.execute("DELETE FROM Price_History WHERE location_id < 0 OR unleaded_price < 0 OR premium_price < 0;")
+        cursor.execute("DELETE FROM Legacy_Price_History WHERE location_id < 0 OR unleaded_price < 0 OR premium_price < 0;")
+        print("Success!")
+    else:
+        print("No Data Modified")
+
+def fullTest():
+    #Tests with random inputs
+    #NOTE: Needs password
+    print("WARNING This test will insert test data, but may have unintended consequences")
+    password = input("Proceed? (Y/N): ")
+    if(password == "Y" or password == "y"):
+        print("Inserting Data...")
+        junker()
+        print("Success!")
+        print("Transferring Data to History...")
+        priceHistoryCreation()
+        legacyDataCreation()
+        print("Success!")
+        testClear()
+    else:
+        print("No Data Modified")
 
 cnx = mysql.connector.connect()
 print("attempting connection to server")
@@ -94,42 +143,7 @@ print(cnx)
 cursor = cnx.cursor()
 
 #put functions you want here
-zeUberFunction();
+zeUberFunction()
 
 cnx.commit()
 cnx.close()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""from sshtunnel import SSHTunnelForwarder
-import MySQLdb as db
-import pandas as pd
-
-with SSHTunnelForwarder(
-    'premium143.web-hosting.com',
-    ssh_port=21098,
-    ssh_username="andypbbo",
-    ssh_password="H#3W2&1S4X4JD3l7",
-    remote_bind_address=('162.0.232.237', 21098)
-) as server:
-    print("Connection to server established");
-    conn = db.connect(host="127.0.0.1",
-    port=server.local_bind_port,
-    user="andypbbo_nathan",
-    passwd="database_password1")
-    pd.read_sql_query("INSERT INTO Testing VALUES (-1)", conn)"""
