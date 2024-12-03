@@ -2,18 +2,17 @@ import mysql.connector
 import traceback
 import random
 
-def flaskShit():
-    #TODO: Flask implementation
-    return 0
-
 def jsonSourcing():
-    #TODO: Sourcing data from json and inserting it into Prices then demoting overwritten data
+    #TODO: Sourcing data from json and inserting it into Initial_Prices
     return 0
 
 def priceHistoryCreation():
-    #TODO: Transfer data from prices to price history AND deleting data from active prices table
+    #Imports existing data and any repeat data is sent to records
     #select matching locations and move the OLDER data to price history
-    return 0
+    cursor.execute("INSERT INTO Price_History (location_id, unleaded_price, premium_price, record_time) SELECT location_id, unleaded_price, premium_price, record_time FROM Prices WHERE price_id NOT IN ( SELECT Prices.Price_id FROM Initial_Prices JOIN Prices ON Prices.location_id = Initial_Prices.location_id AND Prices.unleaded_price = Initial_Prices.unleaded_price AND Prices.premium_price = Initial_Prices.premium_price) AND price_id NOT IN ( SELECT Prices.Price_id FROM Price_History JOIN Prices ON Prices.location_id = Price_History.location_id AND Prices.unleaded_price = Price_History.unleaded_price AND Prices.premium_price = Price_History.premium_price);")
+    cursor.execute("TRUNCATE Prices;")
+    cursor.execute("INSERT INTO Prices SELECT * FROM Initial_Prices;")
+    cursor.execute("TRUNCATE Initial_Prices;")
 
 def legacyDataCreation():
     #Demotes data from active history into legacy data by month
@@ -22,22 +21,38 @@ def legacyDataCreation():
     cursor.execute("INSERT INTO Legacy_Price_History (location_id,month,year,unleaded_price,premium_price) SELECT location_id, MONTH(record_time), YEAR(record_time), AVG(unleaded_price), AVG(premium_price) FROM Price_History WHERE (MONTH(record_time) < MONTH(NOW()) AND YEAR(record_time) = YEAR(NOW())) OR YEAR(Price_History.record_time) < YEAR(NOW()) GROUP BY location_id, YEAR(record_time), MONTH(record_time);")
     cursor.execute("DELETE FROM Price_History WHERE (MONTH(record_time) < MONTH(NOW()) AND YEAR(record_time) = YEAR(NOW())) OR YEAR(record_time) < YEAR(NOW())")
 
+def zeUberFunction():
+    jsonSourcing()
+    priceHistoryCreation()
+    legacyDataCreation()
+
+#TESTING FUNCTIONS
 def priceJunk():
-    #TODO: Throw junk values into price table - not sure if needed (easy)
+    #Throws junk data into prices
     #NOTE: test data is denoted by a NEGATIVE dollar value
 
-    cursor.execute("SELECT MAX(IFNULL(price_id, 0)) FROM Prices")
-    values = "INSERT INTO Prices VALUES "
-    data = cursor.fetchall()
+    values = "INSERT INTO Prices (location_id,unleaded_price,premium_price,record_time) VALUES "
 
-    maximum = data[0][0]
-    for x in range (1, 501):
-        ID = maximum + x
-        if(x!=500):
-            values += "(" + str(ID) + ", " + str(random.randint(0,9)) + "." + str(random.randint(1,99)) + ", " + str(-1 * random.randint(1,10)) + ", \"unleaded\", " + str(2024) + '-' + str(10) + '-' +str(random.randint(1,30)) + "\"),\n"
+    for x in range (1, 101):
+        if(x==100):
+            values += "("+str(-1*random.randint(1,10))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(random.randint(1,9999))+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\");"
         else:
-            values += "(" + str(ID) + ", " + str(random.randint(0,9)) + "." + str(random.randint(1,99)) + ", " + str(-1 * random.randint(1,10)) + ", \"unleaded\", " + str(2024) + '-' + str(random.randint(1,12)) + '-' +str(random.randint(1,30)) + "\")"
+            values += "("+str(-1*random.randint(1,10))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(2024)+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\"),\n"
+    cursor.execute(values)
     
+    return 0
+
+def initPriceJunk():
+    #Throws junk data into initial prices
+    #NOTE: test data is denoted by a NEGATIVE dollar value
+
+    values = "INSERT INTO Initial_Prices (location_id,unleaded_price,premium_price,record_time) VALUES "
+
+    for x in range (1, 101):
+        if(x==100):
+            values += "("+str(-1*random.randint(1,10))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(random.randint(1,9999))+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\");"
+        else:
+            values += "("+str(-1*random.randint(1,10))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(2024)+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\"),\n"
     cursor.execute(values)
     
     return 0
@@ -79,7 +94,7 @@ print(cnx)
 cursor = cnx.cursor()
 
 #put functions you want here
-legacyDataCreation()
+zeUberFunction();
 
 cnx.commit()
 cnx.close()
