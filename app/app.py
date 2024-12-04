@@ -1,14 +1,28 @@
 from flask import Flask, render_template, send_from_directory
 from flask_caching import Cache
 import requests
-import MySQLdb
+#import MySQLdb		<-- LITERALLY JUST FOR STEVEN
+import pymysql as MySQLdb		#<-- EVERYONE ON WINDOWS IN YOUR '.venv' DIRECTORY DO 'pip install pymysql' AND USE THIS LINE
 
+#begin steven's linux machine compatability
+"""
 db = MySQLdb.connect(
 	host='cse335-fall-2024.c924km8o85q2.us-east-1.rds.amazonaws.com',
 	user='ncmudd01',
 	password='54caf60528',
 	database='student_ncmudd01_db'
 )
+"""
+#end steven's linux machine compatability
+
+#begin windows vscode implementation
+db = MySQLdb.connections.Connection (
+	host = 'cse335-fall-2024.c924km8o85q2.us-east-1.rds.amazonaws.com',
+	user = 'ncmudd01',
+	password = '54caf60528',
+	database = 'student_ncmudd01_db'
+ )
+#end windows vscode implementation
 
 app = Flask(__name__)
 app.config['CACHE_TYPE'] = 'SimpleCache'
@@ -24,12 +38,6 @@ def strip_spaces(obj):
 		return {key: strip_spaces(value) for key, value in obj.items()}
 	return obj
 
-def upload(sequel):
-	cursor = db.cursor()
-	cursor.executemany("INSERT INTO gas_prices (store_id, regular_price, premium_price) VALUES (%s, %s, %s)", sequel)
-	db.commit()
-	cursor.close()
-
 @app.route("/")
 def index():
 	return render_template("map.html")
@@ -38,32 +46,38 @@ def index():
 def favicon():
 	return send_from_directory(app.static_folder, "gas.svg")
 
-@app.route("/sams.csv")
-def sams():
-	result = sequel = []
+@app.route("/gas.csv")
+def gas():
+	data = cache.get("gas")
+	if data: return data
+
+	sequel = []
+	result = []
 	for store in samsdata():
 		if 'gasPrices' in store:
 			prices = {11:0,16:0}
 			for grade in store['gasPrices']:
 				if grade['gradeId'] in prices:
 					prices[grade['gradeId']] = f"{int(grade['price']*100)/100:.2f}"
-			result.append(f"{prices[11]},{prices[16]},{store['geoPoint']['latitude']},{store['geoPoint']['longitude']}")
 			sequel.append((store['id'],prices[11],prices[16]))
-	upload(sequel)
-	return "\n".join(result)
-
-@app.route("/costco.csv")
-def costco():
-	result = sequel = []
+			result.append(f"{prices[11]},{prices[16]},{store['geoPoint']['latitude']},{store['geoPoint']['longitude']}")
+	result.append("")
 	for store in costcodata():
 		if 'US' == store['country'] and 'regular' in store['gasPrices'] and 'PR' != store['state']:
 			prices = {'regular':0,'premium':0}
 			for grade in prices:
 				prices[grade] = store['gasPrices'][grade][:-1]
-			result.append(f"{prices['regular']},{prices['premium']},{store['latitude']},{store['longitude']}")
 			sequel.append((store['identifier'],prices['regular'],prices['premium']))
-	upload(sequel)
-	return "\n".join(result)
+			result.append(f"{prices['regular']},{prices['premium']},{store['latitude']},{store['longitude']}")
+	"""
+	cursor = db.cursor()
+	cursor.executemany("INSERT INTO gas_prices (store_id, regular_price, premium_price) VALUES (%s, %s, %s)", sequel)
+	db.commit()
+	cursor.close()
+	"""
+	data = "\n".join(result)
+	cache.set("gas", data)
+	return data
 
 @app.route("/sams.json")
 def samsdata():
@@ -87,5 +101,18 @@ def costcodata():
 	cache.set("costco", data)
 	return data
 
+def mySQLTesting():
+    cursor = db.cursor()
+    
+    cursor.execute("SELECT * FROM gas_prices")
+    output = cursor.fetchall()
+    
+    for i in output:
+        print(i)
+        
+    cursor.close()
+
 if __name__ == '__main__':
 	app.run()
+ 
+	mySQLTesting()

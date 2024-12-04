@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Gas Prices</title>
+	<!--<link rel="icon" type="image/x-icon" href="/gas.svg">-->
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+	
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+	
+	<style>
+/* 
+	Colors:
+		background is #FAD8D6
+		foreground is #F2BFA4
+		box shadows is #E2B09B
+		text color is #2E282A
+*/	
+
+* {
+	padding: 0;
+	margin: 0;
+}	
+
+html, body {
+	height: 100%;
+}
+
+#map {
+	height: 100%;
+	width: 60%;
+	display: flex;
+	float: right;
+}
+
+.price-marker {
+	border-radius: 50%;
+	text-align: center;
+	width: 40px;
+	height: 30px;
+	line-height: 30px;
+	font-size: 14px;
+	font-weight: bold;	
+}
+.costco {
+	background-color: rgba(227, 42, 54, 0.5);
+}
+.sams {
+	background-color: rgba(0, 103, 160, 0.5);
+}
+
+#lefttext {
+	background-color: #FAD8D6;
+	color: #2E282A;
+	float: left;
+	width: calc(40% - 3px);
+	height: 100%;
+	text-align: left;
+	border-right-width: 3px;
+	border-right-color: black;
+	border-right-style: solid;
+}
+
+#lefttext #h1decor2 {
+	margin-bottom: 1.5em;
+	padding-bottom: 0.2em;
+	border-bottom: 0.2em solid #F2BFA4;
+}
+
+#lefttext #h1decor {
+	padding-bottom: 0.2em;
+	border-bottom: 1em solid #F2BFA4;
+}
+
+#lefttext #h1decor h1 {
+	padding-left: 0.5em;
+	background-color: #F2BFA4;
+	padding-top: 1em;
+	padding-bottom: 0.5em;
+	font-family: Playfair Display;
+	font-weight: bold;
+	font-size: 3em;
+}
+
+#lefttext #userinputs {
+	padding: 1em;
+	margin-right: 10%;
+	background-color: #F2BFA4;
+	box-shadow: 1em 1em #E2B09B;
+}
+
+#lefttext #userinputs div{
+	height: 5%;
+	background-color: #F2BFA4;
+	display: flex;
+	padding-bottom: 2em;
+}
+
+#lefttext #userinputs div p {
+	width: calc(10vw + 6em);
+	font-size: calc(0.6em + 0.5vw);
+	height: 50%;
+	top: 50%;
+	padding-left: 0.5em;
+	transform: translate(0, 50%);
+	text-align: right;
+	padding-right: 1em;
+	font-family: Sans-Serif;
+}
+
+#lefttext #userinputs .inputFailure {
+	font-weight: bold;
+	font-size: 1em;
+	transform: translate(10%, 0);
+	color: rgb(170, 71, 71);
+}
+
+#lefttext #userinputs div form input {
+	background-color: #F2BFA4;
+	width: 100%;
+	transform: translate(0, 40%);
+	border: none;
+	border-bottom: 1px solid black;
+	font-size: calc(0.5em + 0.5vw);
+}
+
+#lefttext #userinputs div input::placeholder {
+	color: #F5E7DE;
+}
+
+#left-side #userinputs #userinputftype {
+	padding-bottom: 0;
+}
+
+#lefttext #userinputs #userinputftype #checktextbox {
+	transform: translate(-13%, 50%);
+}
+
+#lefttext #userinputs div #check {
+	background-color: #F2BFA4;
+	width: 40%;
+	margin-left: 0;
+	margin-right: 0;
+	padding-bottom: 0;
+	transform: translate(-15%, 0%);
+}
+
+#lefttext #userinputs div #check input {
+	border: none;
+	padding: none;
+	margin: none;
+	transform: translate(0, 50%);
+}
+
+#lefttext #userinputs #submitButton {
+	margin-bottom: 0;
+	padding-bottom: 0;
+	margin-top: 0.5em;
+	margin-left: 82%;
+}
+
+#lefttext #userinputs #submitButton button {
+	background-color: #F2BFA4;
+	padding: 0.3em;
+	border-style: solid;
+	border-radius: 1em;
+	border-width: 2px;
+	border-color: #2E282A;
+	color: #2E282A;
+}
+
+	</style>
+</head>
+<body>
+	<div id = "lefttext">	<!--  the box for everything on the left side  -->
+		<div id = "h1decor2">	<!--  holds the h1 boxes  -->
+			<div id = "h1decor">
+				<h1>Nearest Gas Prices</h1>
+			</div>
+		</div>
+		
+		<div id = "userinputs">	<!--  box for everything that the user inputs data into  -->
+			
+			<p id = "zipcodeErrorMessage" class = "inputFailure"></p>	<!--  Zipcode  -->
+			<div id = "userinputsz">
+				<p>Enter your zipcode</p>			
+				<form id="userForm">
+					<input type="text" id="userZipcode" placeholder="Zipcode">
+				</form>
+			</div>
+			
+			<p id = "priceErrorMessage" class = "inputFailure"></p>	<!--  User MAX and MIN  -->
+			<div id = "userinputspmin">
+				<p>Enter your min price</p>
+				<form id="userForm">
+					<input type="text" id="userPriceMIN" placeholder="Min Price" name="userInput">
+				</form>
+			</div>
+			
+			<div id = "userinputspmax">
+				<p>Enter your max price</p>
+				<form id="userForm">
+					<input type="text" id="userPriceMAX" placeholder="Max Price" name="userInput">
+				</form>
+			</div>
+				
+			<p id = "fuelErrorMessage" class = "inputFailure"></p>
+			<div id = "userinputftype">
+				<p id = "checktextbox">Select your Fuel Type</p>
+				<div id = "check">
+					<input type="checkbox" id = "unleadedFuel">
+					<p>unleaded</p>
+					<input type="checkbox" id = "premiumFuel">
+					<p>premium</p>
+				</div>
+			</div>
+
+			<div id = "submitButton">
+				<button type="button" onclick="inputData()">Submit!</button>
+			</div>
+		</div>
+
+		<!--  used for testing the functions, may need later?  -->
+			<!--
+			<div id = "testing">
+				<button type="button" onclick="getZipcode()">Testing ZIPCODE</button>
+				<button type="button" onclick="getPrices()">Testing PRICES</button>
+			</div>
+			-->
+
+		<!--  testing flask parsing
+		<div>
+			<p id = "testing"></p>
+		</div> 
+		
+		<button type="button" onclick="flaskToHTMLTesting()">TESTING FLASK</button> -->
+	</div>
+
+	<div id="map"></div>
+<script>
+
+	//begin steven's map view
+	function createPriceIcon(price, color) {
+		return L.divIcon({
+			className: 'price-icon',
+			html: `<div class="price-marker ${color}">$${price}</div>`,
+			iconSize: [40, 30]
+		});
+	}
+	
+	let map = L.map('map').setView([38.25, -85.65], 11);
+	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+	let layerControl = L.control.layers(null, null, {collapsed: false}).addTo(map);
+	fetch("gas.csv").then(response => response.text()).then(csv => {
+		r = csv.split('\n').map(row => row.split(','));
+		stores = ["sams", "costco"]
+		storeLayers = [L.layerGroup(), L.layerGroup()];
+		i = 0
+		for (let s of r) {
+			if (s == "") {
+				layerControl.addOverlay(storeLayers[i], stores[i]);
+				storeLayers[i].addTo(map)
+				i++
+				continue
+			}
+			popup="<table><tr><th>Unleaded</th><th>$"+s[0]+"</th></tr><tr><th>Premium</th><th>$"+s[1]+"</th></tr></table>"
+			L.marker([s[2], s[3]], { icon: createPriceIcon(s[0], stores[i]) }).bindPopup(popup).addTo(storeLayers[i]);
+		}
+		layerControl.addOverlay(storeLayers[i], stores[i]);
+		storeLayers[i].addTo(map)
+	})
+	//end steven's map view
+
+	//function for the button to run all the other functions
+	function inputData() {
+		getZipcode();
+		getPrices();
+		getFuelTypes();
+	}
+
+	//script for allowing user to input their information
+	//zipcode function
+	function getZipcode() {
+		// Get the value from the input field
+		var userZipcode = document.getElementById('userZipcode').value;
+		var result = document.getElementById('zipcodeErrorMessage');
+
+		if(isNumber(parseInt(userZipcode)) && userZipcode.length == 5){
+			result.style.display = "none";
+			//send the data here
+		} else {
+			result.style.display = "flex";
+			result.textContent = "* Please enter a proper number (input: XXXXX)";
+		}
+	}
+
+	//min max prices button
+	function getPrices() {
+		// Get the value from the input field
+		var userPriceMIN = document.getElementById('userPriceMIN').value;
+		var userPriceMAX = document.getElementById('userPriceMAX').value;
+		var result = document.getElementById('priceErrorMessage');
+
+		if(userPriceMAX.length == 4 && userPriceMIN.length == 4){
+			if(isNumber(parseFloat(userPriceMIN)) && isNumber(parseFloat(userPriceMAX))){
+				if(parseFloat(userPriceMIN) < parseFloat(userPriceMAX)){
+					result.style.display = "none";
+					//send the data here
+				} else {
+					result.style.display = "flex";
+					result.textContent = "* Need MAX to be more than MIN";
+				}
+			} else {
+				result.style.display = "flex";
+				result.textContent = "* Please enter a number (input: X.XX)";
+			}
+		} else {
+			result.style.display = "flex";
+			result.textContent = "* Please enter a number (input: X.XX)";
+		}
+	}
+
+	function getFuelTypes() {
+		var userFuelTypeU = document.getElementById('unleadedFuel');
+		var userFuelTypeP = document.getElementById('premiumFuel');
+		var result = document.getElementById('fuelErrorMessage');
+
+		if(userFuelTypeU.checked == false && userFuelTypeP.checked == false){
+			result.style.display = "flex";
+			result.textContent = "* Please select at least one fuel type"
+		} else {
+			result.style.display = "none";
+			//send the data here
+		}
+	}
+
+	function isNumber(value) {
+		return typeof value === 'number';
+	}
+	
+	/*
+	function flaskToHTMLTesting() {
+		document.getElementById("testing").textContent = {{ hello }}
+	}
+	*/
+</script>
+</body>
+</html>
