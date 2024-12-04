@@ -1,8 +1,9 @@
+from queue import Full
 from flask import Flask, render_template, send_from_directory
 from flask_caching import Cache
 import requests
 import random
-import pymysql as MySQLdb
+import pymysql
 
 db = pymysql.connections.Connection (
 	host='cse335-fall-2024.c924km8o85q2.us-east-1.rds.amazonaws.com',
@@ -13,11 +14,8 @@ db = pymysql.connections.Connection (
 
 app = Flask(__name__)
 app.config['CACHE_TYPE'] = 'SimpleCache'
-app.config['CACHE_DEFAULT_TIMEOUT'] = 1800
+app.config['CACHE_DEFAULT_TIMEOUT'] = 1#1800
 cache = Cache(app)
-
-cursor = db.cursor()
-
 
 #SQL STUFF
 def strip_spaces(obj):
@@ -32,17 +30,23 @@ def strip_spaces(obj):
 def priceHistoryCreation():
 	#Imports existing data and any repeat data is sent to records
 	#select matching locations and move the OLDER data to price history
+	cursor = db.cursor()
 	cursor.execute("INSERT INTO Price_History (location_id, unleaded_price, premium_price, record_time) SELECT location_id, unleaded_price, premium_price, record_time FROM Prices WHERE price_id NOT IN ( SELECT Prices.Price_id FROM Initial_Prices JOIN Prices ON Prices.location_id = Initial_Prices.location_id AND Prices.unleaded_price = Initial_Prices.unleaded_price AND Prices.premium_price = Initial_Prices.premium_price) AND price_id NOT IN ( SELECT Prices.Price_id FROM Price_History JOIN Prices ON Prices.location_id = Price_History.location_id AND Prices.unleaded_price = Price_History.unleaded_price AND Prices.premium_price = Price_History.premium_price);")
 	cursor.execute("TRUNCATE Prices;")
 	cursor.execute("INSERT INTO Prices SELECT * FROM Initial_Prices;")
 	cursor.execute("TRUNCATE Initial_Prices;")
+	db.commit()
+	cursor.close()
 
 def legacyDataCreation():
 	#Demotes data from active history into legacy data by month
 	#WARNING: Needs a value to base MAX(Legacy_id) off of however this can be fixed
 	#TODO: fix that (easy)
+	cursor = db.cursor()
 	cursor.execute("INSERT INTO Legacy_Price_History (location_id,month,year,unleaded_price,premium_price) SELECT location_id, MONTH(record_time), YEAR(record_time), AVG(unleaded_price), AVG(premium_price) FROM Price_History WHERE (MONTH(record_time) < MONTH(NOW()) AND YEAR(record_time) = YEAR(NOW())) OR YEAR(Price_History.record_time) < YEAR(NOW()) GROUP BY location_id, YEAR(record_time), MONTH(record_time);")
 	cursor.execute("DELETE FROM Price_History WHERE (MONTH(record_time) < MONTH(NOW()) AND YEAR(record_time) = YEAR(NOW())) OR YEAR(record_time) < YEAR(NOW())")
+	db.commit()
+	cursor.close()
 
 def zeUberFunction():
 	priceHistoryCreation()
@@ -52,7 +56,7 @@ def zeUberFunction():
 def initPriceJunk():
 	#Throws junk data into initial prices
 	#NOTE: test data is denoted by a NEGATIVE dollar value
-
+	cursor = db.cursor()
 	values = "INSERT INTO Initial_Prices (location_id,unleaded_price,premium_price) VALUES "
 
 	for x in range (1, 101):
@@ -61,13 +65,15 @@ def initPriceJunk():
 		else:
 			values += "("+str(-1*random.randint(1,10))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+"),\n"
 	cursor.execute(values)
+	db.commit()
+	cursor.close()
     
 	return 0
 
 def priceJunk():
 	#Throws junk data into prices
 	#NOTE: test data is denoted by a NEGATIVE dollar value
-
+	cursor = db.cursor()
 	values = "INSERT INTO Prices (location_id,unleaded_price,premium_price,record_time) VALUES "
 
 	for x in range (1, 101):
@@ -77,12 +83,15 @@ def priceJunk():
 			values += "("+str(-1*random.randint(1,10))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(2024)+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\"),\n"
 	cursor.execute(values)
     
+	db.commit()
+	cursor.close()
 	return 0
 
 def historyJunk():
 	#Throws junk into the History table
 	#WARNING: PKs added are greater than the highest value
 	#NOTE: test data is denoted by a NEGATIVE dollar value
+	cursor = db.cursor()
 	cursor.execute("SELECT MAX(history_id) FROM Price_History")
 	values = "INSERT INTO Price_History VALUES "
 	data = cursor.fetchall()
@@ -95,7 +104,9 @@ def historyJunk():
 				values += "("+str(ID)+","+str(-1*random.randint(1,10))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(random.randint(1,9999))+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\");"
 			else:
 				values += "("+str(ID)+","+str(-1*random.randint(1,10))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(2024)+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\"),\n"
-		cursor.execute(values)
+	cursor.execute(values)
+	db.commit()
+	cursor.close()
 
 def junker():
 	#Puts old junk on Prices and new junk on initial Prices
@@ -106,6 +117,7 @@ def clear():
 	#Truncates all tables
 	#NOTE: Needs password
 	print("WARNING This will delete ALL data across ALL tables")
+	cursor = db.cursor()
 	password = input("Database Password: ")
 	if(password == "54caf60528"):
 		print("Cleaning Database...")
@@ -115,9 +127,12 @@ def clear():
 		cursor.execute("TRUNCATE Legacy_Price_History;")
 	else:
 		print("Incorrect Password No Data Modified")
+	db.commit()
+	cursor.close()
 
 def testClear():
 	print("WARNING Attempting to delete all test data, but may have unintended consequences")
+	cursor = db.cursor()
 	password = input("Proceed? (Y/N): ")
 	if(password == "Y" or password == "y"):
 		print("Cleaning Test Data...")
@@ -128,6 +143,8 @@ def testClear():
 		print("Success!")
 	else:
 		print("No Data Modified")
+	db.commit()
+	cursor.close()
 
 def fullTest():
 	#Tests with random inputs
@@ -149,6 +166,7 @@ def fullTest():
 
 @app.route("/gas.csv")
 def gas():
+	cursor = db.cursor()
 	data = cache.get("gas")
 	if data: return data
 
@@ -169,16 +187,13 @@ def gas():
 			for grade in prices:
 			    prices[grade] = int(float(store['gasPrices'][grade])*100)
 			sequel.append((int(store['identifier']),prices['regular'],prices['premium']))
-			prices[grade] = int(float(store['gasPrices'][grade])*100)
-			sequel.append((int(store['identifier']),prices['regular'],prices['premium']))
 			result.append(f"{prices['regular']},{prices['premium']},{store['latitude']},{store['longitude']}")
-	cursor = db.cursor()
-	cursor.executemany("INSERT INTO Initial_Prices (location_id, unleaded_price, premium_price) VALUES (%s, %s, %s)", sequel)
+	#cursor.executemany("INSERT INTO Initial_Prices (location_id, unleaded_price, premium_price) VALUES (%s, %s, %s)", sequel)
+	#zeUberFunction()
 	db.commit()
 	cursor.close()
-	data = "\n".join(result)
+	data = "\n".join(result)s
 	cache.set("gas", data)
-	zeUberFunction()
 	return data
 
 @app.route("/")
@@ -220,7 +235,5 @@ def SQLTEST():
 	cursor.close()
 
 if __name__ == '__main__':
-	db.commit()
-	cursor.close()
-
+	clear()
 	app.run()
