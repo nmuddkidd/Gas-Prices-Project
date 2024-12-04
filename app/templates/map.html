@@ -113,6 +113,7 @@ html, body {
 }
 
 #lefttext #userinputs .inputFailure {
+	display: flex;
 	font-weight: bold;
 	font-size: 1em;
 	transform: translate(10%, 0);
@@ -185,7 +186,7 @@ html, body {
 		
 		<div id = "userinputs">	<!--  box for everything that the user inputs data into  -->
 			
-			<p id = "zipcodeErrorMessage" class = "inputFailure"></p>	<!--  Zipcode  -->
+			<p id = "zipcodeErrorMessage" class = "inputFailure">* Please enter a proper number (input: XXXXX)</p>	<!--  Zipcode  -->
 			<div id = "userinputsz">
 				<p>Enter your zipcode</p>			
 				<form id="userForm">
@@ -193,7 +194,7 @@ html, body {
 				</form>
 			</div>
 			
-			<p id = "priceErrorMessage" class = "inputFailure"></p>	<!--  User MAX and MIN  -->
+			<p id = "priceErrorMessage" class = "inputFailure">* Please enter a number (input: X.XX)</p>	<!--  User MAX and MIN  -->
 			<div id = "userinputspmin">
 				<p>Enter your min price</p>
 				<form id="userForm">
@@ -208,7 +209,7 @@ html, body {
 				</form>
 			</div>
 				
-			<p id = "fuelErrorMessage" class = "inputFailure"></p>
+			<p id = "fuelErrorMessage" class = "inputFailure">* Please select at least one fuel type</p>
 			<div id = "userinputftype">
 				<p id = "checktextbox">Select your Fuel Type</p>
 				<div id = "check">
@@ -239,6 +240,8 @@ html, body {
 		
 		<button type="button" onclick="flaskToHTMLTesting()">TESTING FLASK</button> -->
 	</div>
+
+	<p id = "testing">fuck</p>
 
 	<div id="map"></div>
 <script>
@@ -280,6 +283,35 @@ html, body {
 		getZipcode();
 		getPrices();
 		getFuelTypes();
+
+		testingZipcode();
+	}
+
+	function testingZipcode() {
+		//this is fucking so stupid i don't want to do this anymore
+		let minPrice = document.getElementById("userPriceMIN").value;
+		let maxPrice = document.getElementById("userPriceMAX").value;
+		let userZipcode = document.getElementById("userZipcode").value;
+		var userFuelTypeU = document.getElementById('unleadedFuel');
+		var userFuelTypeP = document.getElementById('premiumFuel');
+		var fuelType;
+
+		if(userFuelTypeU.checked == true && userFuelTypeP == false){
+			fuelType = 0;
+		} else if(userFuelTypeU.checked == false && userFuelTypeP == true) {
+			fuelType = 1;
+		} else {
+			fuelType = 2;
+		}
+
+		fetch('http://127.0.0.1:5000/'+ userZipcode + minPrice + maxPrice + fuelType + ".csv"))
+			.then((response) => {
+				return response.text();
+		  	})
+		  	.then((test) => {
+				console.log("When I add " + test);
+		  	});
+		console.log("is this even working");
 	}
 
 	//script for allowing user to input their information

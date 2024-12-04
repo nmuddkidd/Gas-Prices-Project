@@ -1,5 +1,5 @@
 from queue import Full
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, send_from_directory, request, jsonify
 from flask_caching import Cache
 import requests
 import random
@@ -164,7 +164,7 @@ def fullTest():
 		print("No Data Modified")
 	return 0
 
-@app.route("/gas.csv")
+@app.route("/<int>-<float>-<float>-<int>.csv")
 def gas():
 	cursor = db.cursor()
 	data = cache.get("gas")
@@ -192,7 +192,7 @@ def gas():
 	#zeUberFunction()
 	db.commit()
 	cursor.close()
-	data = "\n".join(result)s
+	data = "\n".join(result)
 	cache.set("gas", data)
 	return data
 
