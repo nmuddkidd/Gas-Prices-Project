@@ -143,7 +143,7 @@ print(cnx)
 cursor = cnx.cursor()
 
 #put functions you want here
-zeUberFunction()
+junker()
 
 cnx.commit()
 cnx.close()
