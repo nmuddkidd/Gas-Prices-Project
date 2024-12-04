@@ -1,28 +1,14 @@
 from flask import Flask, render_template, send_from_directory
 from flask_caching import Cache
 import requests
-#import MySQLdb		<-- LITERALLY JUST FOR STEVEN
-import pymysql as MySQLdb		#<-- EVERYONE ON WINDOWS IN YOUR '.venv' DIRECTORY DO 'pip install pymysql' AND USE THIS LINE
+import pymysql
 
-#begin steven's linux machine compatability
-"""
-db = MySQLdb.connect(
+db = pymysql.connections.Connection (
 	host='cse335-fall-2024.c924km8o85q2.us-east-1.rds.amazonaws.com',
 	user='ncmudd01',
 	password='54caf60528',
 	database='student_ncmudd01_db'
 )
-"""
-#end steven's linux machine compatability
-
-#begin windows vscode implementation
-db = MySQLdb.connections.Connection (
-	host = 'cse335-fall-2024.c924km8o85q2.us-east-1.rds.amazonaws.com',
-	user = 'ncmudd01',
-	password = '54caf60528',
-	database = 'student_ncmudd01_db'
- )
-#end windows vscode implementation
 
 app = Flask(__name__)
 app.config['CACHE_TYPE'] = 'SimpleCache'
@@ -58,7 +44,7 @@ def gas():
 			prices = {11:0,16:0}
 			for grade in store['gasPrices']:
 				if grade['gradeId'] in prices:
-					prices[grade['gradeId']] = f"{int(grade['price']*100)/100:.2f}"
+					prices[grade['gradeId']] = int(grade['price']*100)
 			sequel.append((store['id'],prices[11],prices[16]))
 			result.append(f"{prices[11]},{prices[16]},{store['geoPoint']['latitude']},{store['geoPoint']['longitude']}")
 	result.append("")
@@ -66,12 +52,12 @@ def gas():
 		if 'US' == store['country'] and 'regular' in store['gasPrices'] and 'PR' != store['state']:
 			prices = {'regular':0,'premium':0}
 			for grade in prices:
-				prices[grade] = store['gasPrices'][grade][:-1]
-			sequel.append((store['identifier'],prices['regular'],prices['premium']))
+				prices[grade] = int(float(store['gasPrices'][grade])*100)
+			sequel.append((int(store['identifier']),prices['regular'],prices['premium']))
 			result.append(f"{prices['regular']},{prices['premium']},{store['latitude']},{store['longitude']}")
 	"""
 	cursor = db.cursor()
-	cursor.executemany("INSERT INTO gas_prices (store_id, regular_price, premium_price) VALUES (%s, %s, %s)", sequel)
+	cursor.executemany("INSERT INTO Initial_Prices (store_id, regular_price, premium_price) VALUES (%s, %s, %s)", sequel)
 	db.commit()
 	cursor.close()
 	"""
@@ -101,18 +87,14 @@ def costcodata():
 	cache.set("costco", data)
 	return data
 
-def mySQLTesting():
-    cursor = db.cursor()
-    
-    cursor.execute("SELECT * FROM gas_prices")
-    output = cursor.fetchall()
-    
-    for i in output:
-        print(i)
-        
-    cursor.close()
+def SQLTEST():
+	cursor = db.cursor()
+	cursor.execute("SELECT * FROM Initial_Prices")
+	output = cursor.fetchall()
+	for _ in output:
+		print(_)
+	cursor.close()
 
 if __name__ == '__main__':
+	SQLTEST()
 	app.run()
- 
-	mySQLTesting()
