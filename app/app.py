@@ -188,11 +188,11 @@ def gas():
 			    prices[grade] = int(float(store['gasPrices'][grade])*100)
 			sequel.append((int(store['identifier']),prices['regular'],prices['premium']))
 			result.append(f"{prices['regular']},{prices['premium']},{store['latitude']},{store['longitude']}")
-	cursor.executemany("INSERT INTO Initial_Prices (location_id, unleaded_price, premium_price) VALUES (%s, %s, %s)", sequel)
-	zeUberFunction()
+	#cursor.executemany("INSERT INTO Initial_Prices (location_id, unleaded_price, premium_price) VALUES (%s, %s, %s)", sequel)
+	#zeUberFunction()
 	db.commit()
 	cursor.close()
-	data = "\n".join(result)
+	data = "\n".join(result)s
 	cache.set("gas", data)
 	return data
 
