@@ -1,14 +1,14 @@
 from flask import Flask, render_template, send_from_directory
 from flask_caching import Cache
 import requests
-import MySQLdb
+import pymysql as MySQLdb
 
-db = MySQLdb.connect(
-	host='cse335-fall-2024.c924km8o85q2.us-east-1.rds.amazonaws.com',
-	user='ncmudd01',
-	password='54caf60528',
-	database='student_ncmudd01_db'
-)
+db = MySQLdb.connections.Connection (
+	host = 'cse335-fall-2024.c924km8o85q2.us-east-1.rds.amazonaws.com',
+	user = 'ncmudd01',
+	password = '54caf60528',
+	database = 'student_ncmudd01_db'
+ )
 
 app = Flask(__name__)
 app.config['CACHE_TYPE'] = 'SimpleCache'
