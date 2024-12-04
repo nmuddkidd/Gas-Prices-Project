@@ -4,12 +4,12 @@ import requests
 import random
 import pymysql as MySQLdb
 
-db = MySQLdb.connections.Connection (
-	host = 'cse335-fall-2024.c924km8o85q2.us-east-1.rds.amazonaws.com',
-	user = 'ncmudd01',
-	password = '54caf60528',
-	database = 'student_ncmudd01_db'
- )
+db = pymysql.connections.Connection (
+	host='cse335-fall-2024.c924km8o85q2.us-east-1.rds.amazonaws.com',
+	user='ncmudd01',
+	password='54caf60528',
+	database='student_ncmudd01_db'
+)
 
 app = Flask(__name__)
 app.config['CACHE_TYPE'] = 'SimpleCache'
@@ -169,6 +169,8 @@ def gas():
 			for grade in prices:
 			    prices[grade] = int(float(store['gasPrices'][grade])*100)
 			sequel.append((int(store['identifier']),prices['regular'],prices['premium']))
+			prices[grade] = int(float(store['gasPrices'][grade])*100)
+			sequel.append((int(store['identifier']),prices['regular'],prices['premium']))
 			result.append(f"{prices['regular']},{prices['premium']},{store['latitude']},{store['longitude']}")
 	cursor = db.cursor()
 	cursor.executemany("INSERT INTO Initial_Prices (location_id, unleaded_price, premium_price) VALUES (%s, %s, %s)", sequel)
@@ -208,6 +210,14 @@ def costcodata():
 	data = strip_spaces(response.json()[1:])
 	cache.set("costco", data)
 	return data
+
+def SQLTEST():
+	cursor = db.cursor()
+	cursor.execute("SELECT * FROM Initial_Prices")
+	output = cursor.fetchall()
+	for _ in output:
+		print(_)
+	cursor.close()
 
 if __name__ == '__main__':
 	db.commit()
