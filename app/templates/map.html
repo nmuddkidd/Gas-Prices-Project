@@ -258,24 +258,7 @@ html, body {
 	let map = L.map('map').setView([38.25, -85.65], 11);
 	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 	let layerControl = L.control.layers(null, null, {collapsed: false}).addTo(map);
-	fetch("gas.csv").then(response => response.text()).then(csv => {
-		r = csv.split('\n').map(row => row.split(','));
-		stores = ["sams", "costco"]
-		storeLayers = [L.layerGroup(), L.layerGroup()];
-		i = 0
-		for (let s of r) {
-			if (s == "") {
-				layerControl.addOverlay(storeLayers[i], stores[i]);
-				storeLayers[i].addTo(map)
-				i++
-				continue
-			}
-			popup="<table><tr><th>Unleaded</th><th>$"+s[0]+"</th></tr><tr><th>Premium</th><th>$"+s[1]+"</th></tr></table>"
-			L.marker([s[2], s[3]], { icon: createPriceIcon(s[0], stores[i]) }).bindPopup(popup).addTo(storeLayers[i]);
-		}
-		layerControl.addOverlay(storeLayers[i], stores[i]);
-		storeLayers[i].addTo(map)
-	})
+	
 	//end steven's map view
 
 	//function for the button to run all the other functions
@@ -304,13 +287,24 @@ html, body {
 			fuelType = 2;
 		}
 
-		fetch('http://127.0.0.1:5000/'+ userZipcode + minPrice + maxPrice + fuelType + ".csv"))
-			.then((response) => {
-				return response.text();
-		  	})
-		  	.then((test) => {
-				console.log("When I add " + test);
-		  	});
+		fetch("/"+ userZipcode + minPrice + maxPrice + fuelType + ".csv").then(response => response.text()).then(csv => {
+			r = csv.split('\n').map(row => row.split(','));
+			stores = ["sams", "costco"]
+			storeLayers = [L.layerGroup(), L.layerGroup()];
+			i = 0
+			for (let s of r) {
+				if (s == "") {
+					layerControl.addOverlay(storeLayers[i], stores[i]);
+					storeLayers[i].addTo(map)
+					i++
+					continue
+				}
+				popup="<table><tr><th>Unleaded</th><th>$"+s[0]+"</th></tr><tr><th>Premium</th><th>$"+s[1]+"</th></tr></table>"
+				L.marker([s[2], s[3]], { icon: createPriceIcon(s[0], stores[i]) }).bindPopup(popup).addTo(storeLayers[i]);
+			}
+			layerControl.addOverlay(storeLayers[i], stores[i]);
+			storeLayers[i].addTo(map)
+		})
 		console.log("is this even working");
 	}
 

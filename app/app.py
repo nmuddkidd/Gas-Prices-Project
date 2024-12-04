@@ -164,32 +164,34 @@ def fullTest():
 		print("No Data Modified")
 	return 0
 
-@app.route("/<int>-<float>-<float>-<int>.csv")
-def gas():
-	cursor = db.cursor()
+@app.route('/<int:zipcode>-<float:minPrice>-<float:maxPrice>-<int:gasType>.csv')
+def gas(zipcode, minPrice, maxPrice, gasType):
 	data = cache.get("gas")
 	if data: return data
 
-	sequel = []
+	prices = []
+	locations = []
 	result = []
-	for store in samsdata():
-		if 'gasPrices' in store:
-			prices = {11:0,16:0}
-			for grade in store['gasPrices']:
-				if grade['gradeId'] in prices:
-					prices[grade['gradeId']] = int(grade['price']*100)
-			sequel.append((store['id'],prices[11],prices[16]))
-			result.append(f"{prices[11]},{prices[16]},{store['geoPoint']['latitude']},{store['geoPoint']['longitude']}")
+	for s in samsdata():
+		if 'gasPrices' in s:
+			p = {11:0,16:0}
+			for grade in s['gasPrices']:
+				if grade['gradeId'] in p:
+					p[grade['gradeId']] = int(grade['price']*100)
+			prices.append((s['id'],p[11],p[16]))
+			locations.append((s['id'],s['name'],s['address']['address1'],s['address']['city'],s['address']['state'],s['address']['postalCode'],s['geoPoint']['latitude'],s['geoPoint']['longitude']))
 	result.append("")
-	for store in costcodata():
-		if 'US' == store['country'] and 'regular' in store['gasPrices'] and 'PR' != store['state']:
-			prices = {'regular':0,'premium':0}
-			for grade in prices:
-			    prices[grade] = int(float(store['gasPrices'][grade])*100)
-			sequel.append((int(store['identifier']),prices['regular'],prices['premium']))
-			result.append(f"{prices['regular']},{prices['premium']},{store['latitude']},{store['longitude']}")
-	#cursor.executemany("INSERT INTO Initial_Prices (location_id, unleaded_price, premium_price) VALUES (%s, %s, %s)", sequel)
-	#zeUberFunction()
+	for s in costcodata():
+		if 'US' == s['country'] and 'regular' in s['gasPrices'] and 'PR' != s['state']:
+			p = {'regular':0,'premium':0}
+			for grade in p:
+				p[grade] = int(float(s['gasPrices'][grade])*100)
+			prices.append((int(s['identifier']),p['regular'],p['premium']))
+			locations.append((s['identifier'],s['locationName'],s['address1'],s['city'],s['state'],s['zipCode'],s['latitude'],s['longitude']))
+	cursor = db.cursor()
+	# cursor.executemany("INSERT INTO Prices (location_id, regular_price, premium_price) VALUES (%s, %s, %s)", prices)
+	cursor.executemany("INSERT INTO Location (location_id, name, address, city, state, zip_code, latitude, longitude) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE name = VALUES(name)", locations)
+	cursor.execute("SELECT FROM Location WHERE zip_code=%s")
 	db.commit()
 	cursor.close()
 	data = "\n".join(result)
