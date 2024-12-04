@@ -54,7 +54,7 @@ def gas():
 			for grade in prices:
 				prices[grade] = int(float(store['gasPrices'][grade])*100)
 			sequel.append((int(store['identifier']),prices['regular'],prices['premium']))
-				prices[grade] = int(float(store['gasPrices'][grade])*100)
+			prices[grade] = int(float(store['gasPrices'][grade])*100)
 			sequel.append((int(store['identifier']),prices['regular'],prices['premium']))
 			result.append(f"{prices['regular']},{prices['premium']},{store['latitude']},{store['longitude']}")
 	"""
