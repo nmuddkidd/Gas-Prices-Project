@@ -66,8 +66,10 @@ def gas():
 		if 'US' == store['country'] and 'regular' in store['gasPrices'] and 'PR' != store['state']:
 			prices = {'regular':0,'premium':0}
 			for grade in prices:
-				prices[grade] = store['gasPrices'][grade][:-1]
-			sequel.append((store['identifier'],prices['regular'],prices['premium']))
+				prices[grade] = int(float(store['gasPrices'][grade])*100)
+			sequel.append((int(store['identifier']),prices['regular'],prices['premium']))
+			prices[grade] = int(float(store['gasPrices'][grade])*100)
+			sequel.append((int(store['identifier']),prices['regular'],prices['premium']))
 			result.append(f"{prices['regular']},{prices['premium']},{store['latitude']},{store['longitude']}")
 	"""
 	cursor = db.cursor()
