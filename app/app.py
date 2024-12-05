@@ -1,9 +1,12 @@
 from queue import Full
 from flask import Flask, render_template, send_from_directory, request, jsonify
 from flask_caching import Cache
+import csv
 import requests
 import random
 import pymysql
+import os
+from os import path
 
 db = pymysql.connections.Connection (
 	host='cse335-fall-2024.c924km8o85q2.us-east-1.rds.amazonaws.com',
@@ -166,12 +169,14 @@ def fullTest():
 
 @app.route('/<int:zipcode>-<float:minPrice>-<float:maxPrice>-<int:gasType>.csv')
 def gas(zipcode, minPrice, maxPrice, gasType):
+	print(str(maxPrice))
 	data = cache.get("gas")
 	if data: return data
-
+    
 	prices = []
 	locations = []
 	result = []
+ 
 	for s in samsdata():
 		if 'gasPrices' in s:
 			p = {11:0,16:0}
@@ -180,7 +185,7 @@ def gas(zipcode, minPrice, maxPrice, gasType):
 					p[grade['gradeId']] = int(grade['price']*100)
 			prices.append((s['id'],p[11],p[16]))
 			locations.append((s['id'],s['name'],s['address']['address1'],s['address']['city'],s['address']['state'],s['address']['postalCode'],s['geoPoint']['latitude'],s['geoPoint']['longitude']))
-	result.append("")
+	#result.append("")
 	for s in costcodata():
 		if 'US' == s['country'] and 'regular' in s['gasPrices'] and 'PR' != s['state']:
 			p = {'regular':0,'premium':0}
@@ -190,8 +195,24 @@ def gas(zipcode, minPrice, maxPrice, gasType):
 			locations.append((s['identifier'],s['locationName'],s['address1'],s['city'],s['state'],s['zipCode'],s['latitude'],s['longitude']))
 	cursor = db.cursor()
 	# cursor.executemany("INSERT INTO Prices (location_id, regular_price, premium_price) VALUES (%s, %s, %s)", prices)
-	cursor.executemany("INSERT INTO Location (location_id, name, address, city, state, zip_code, latitude, longitude) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE name = VALUES(name)", locations)
-	cursor.execute("SELECT FROM Location WHERE zip_code=%s")
+	#cursor.executemany("INSERT INTO Location (location_id, name, address, city, state, zip_code, latitude, longitude) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE name = VALUES(name)", locations)
+	cursor.execute("SELECT unleaded_price, premium_price, latitude, longitude FROM Location JOIN Prices ON Location.location_id=Prices.location_id WHERE ((zip_code > %s AND zip_code < %s) AND (unleaded_price < %s))", (zipcode-10, zipcode+10, int(maxPrice*100)))
+
+	#printing out the data that i gathered in the select statement	
+	test = cursor.fetchall()
+	for _ in test:
+		result.append(f"{_[0]},{_[1]},{_[2]},{_[3]}")
+	print(result)
+	"""
+	current_work_directory = os.getcwd()
+	filePath = os.path.join(current_work_directory, "/" + str(zipcode) + "-" + str("{:0.2f}".format(minPrice)) + "-" + str("{:0.2f}".format(maxPrice)) + "-" + str(gasType) + ".csv")
+	with open(filePath) as out:
+		writer = csv.writer(out)
+		writer.writerows(test)
+	"""
+  
+	print("that worked")
+  
 	db.commit()
 	cursor.close()
 	data = "\n".join(result)
@@ -200,7 +221,19 @@ def gas(zipcode, minPrice, maxPrice, gasType):
 
 @app.route("/")
 def index():
-	return render_template("map.html")
+    cursor = db.cursor()
+    cursor.execute("SELECT location_id, TIME(record_time), DAY(record_time), MONTH(record_time), YEAR(record_time), unleaded_price, IFNULL(premium_price,0) FROM Price_History ORDER BY record_time DESC LIMIT 6")
+
+    user = cursor.fetchall()
+
+    return render_template('map.html', users = user)
+
+@app.route('/process', methods=['POST'])
+def process():
+    data = request.form.get('data')
+    # process the data using Python code
+    result = data.upper()
+    return result
 
 @app.route("/gas.svg")
 def favicon():
@@ -230,12 +263,13 @@ def costcodata():
 
 def SQLTEST():
 	cursor = db.cursor()
-	cursor.execute("SELECT * FROM Initial_Prices")
+	cursor.execute("SELECT * FROM Prices")
 	output = cursor.fetchall()
 	for _ in output:
 		print(_)
 	cursor.close()
 
 if __name__ == '__main__':
-	clear()
-	app.run()
+	#clear()
+	#SQLTEST()
+	app.run(debug=True)
