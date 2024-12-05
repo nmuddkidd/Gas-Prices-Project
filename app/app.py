@@ -17,7 +17,7 @@ db = pymysql.connections.Connection (
 
 app = Flask(__name__)
 app.config['CACHE_TYPE'] = 'SimpleCache'
-app.config['CACHE_DEFAULT_TIMEOUT'] = 1#1800
+app.config['CACHE_DEFAULT_TIMEOUT'] = 1
 cache = Cache(app)
 
 #SQL STUFF
@@ -34,10 +34,8 @@ def priceHistoryCreation():
 	#Imports existing data and any repeat data is sent to records
 	#select matching locations and move the OLDER data to price history
 	cursor = db.cursor()
-	cursor.execute("INSERT INTO Price_History (location_id, unleaded_price, premium_price, record_time) SELECT location_id, unleaded_price, premium_price, record_time FROM Prices WHERE price_id NOT IN ( SELECT Prices.Price_id FROM Initial_Prices JOIN Prices ON Prices.location_id = Initial_Prices.location_id AND Prices.unleaded_price = Initial_Prices.unleaded_price AND Prices.premium_price = Initial_Prices.premium_price) AND price_id NOT IN ( SELECT Prices.Price_id FROM Price_History JOIN Prices ON Prices.location_id = Price_History.location_id AND Prices.unleaded_price = Price_History.unleaded_price AND Prices.premium_price = Price_History.premium_price);")
-	cursor.execute("TRUNCATE Prices;")
-	cursor.execute("INSERT INTO Prices SELECT * FROM Initial_Prices;")
-	cursor.execute("TRUNCATE Initial_Prices;")
+	cursor.execute("INSERT INTO Price_History (location_id, unleaded_price, premium_price, record_time) SELECT high.location_id, high.unleaded_price, high.premium_price, high.record_time FROM Prices AS low JOIN (SELECT location_id, unleaded_price, premium_price, MIN(record_time) AS record_time FROM Prices GROUP BY location_id HAVING COUNT(*) > 1) AS high ON low.location_id = high.location_id WHERE high.unleaded_price != low.unleaded_price OR high.premium_price != low.premium_price;")
+	cursor.execute("DELETE FROM Prices WHERE price_id NOT IN ( SELECT Price.price_id FROM (SELECT * FROM Prices) AS Price JOIN (SELECT location_id, MAX(record_time) AS record_time FROM (SELECT * FROM Prices) AS compare GROUP BY compare.location_id HAVING COUNT(*) > 1) AS compare ON Price.location_id = compare.location_id AND Price.record_time = compare.record_time) AND price_id NOT IN ( SELECT Price.price_id FROM (SELECT * FROM Prices) AS Price GROUP BY Price.location_id HAVING COUNT(*) = 1);")
 	db.commit()
 	cursor.close()
 
@@ -48,6 +46,7 @@ def legacyDataCreation():
 	cursor = db.cursor()
 	cursor.execute("INSERT INTO Legacy_Price_History (location_id,month,year,unleaded_price,premium_price) SELECT location_id, MONTH(record_time), YEAR(record_time), AVG(unleaded_price), AVG(premium_price) FROM Price_History WHERE (MONTH(record_time) < MONTH(NOW()) AND YEAR(record_time) = YEAR(NOW())) OR YEAR(Price_History.record_time) < YEAR(NOW()) GROUP BY location_id, YEAR(record_time), MONTH(record_time);")
 	cursor.execute("DELETE FROM Price_History WHERE (MONTH(record_time) < MONTH(NOW()) AND YEAR(record_time) = YEAR(NOW())) OR YEAR(record_time) < YEAR(NOW())")
+
 	db.commit()
 	cursor.close()
 
@@ -68,6 +67,7 @@ def initPriceJunk():
 		else:
 			values += "("+str(-1*random.randint(1,10))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+"),\n"
 	cursor.execute(values)
+
 	db.commit()
 	cursor.close()
     
@@ -81,9 +81,9 @@ def priceJunk():
 
 	for x in range (1, 101):
 		if(x==100):
-			values += "("+str(-1*random.randint(1,10))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(random.randint(1,9999))+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\");"
+			values += "("+str(-1*random.randint(1,100))+","+str(-1*random.randint(0,1000))+","+str(-1*random.randint(0,1000))+'.'+str(random.randint(1,99))+",\""+str(random.randint(1,9999))+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\");"
 		else:
-			values += "("+str(-1*random.randint(1,10))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(2024)+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\"),\n"
+			values += "("+str(-1*random.randint(1,100))+","+str(-1*random.randint(0,1000))+","+str(-1*random.randint(0,1000))+'.'+str(random.randint(1,99))+",\""+str(2024)+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\"),\n"
 	cursor.execute(values)
     
 	db.commit()
@@ -107,20 +107,16 @@ def historyJunk():
 				values += "("+str(ID)+","+str(-1*random.randint(1,10))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(random.randint(1,9999))+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\");"
 			else:
 				values += "("+str(ID)+","+str(-1*random.randint(1,10))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+","+str(-1*random.randint(0,9))+'.'+str(random.randint(1,99))+",\""+str(2024)+'-'+str(random.randint(1,12))+'-'+str(random.randint(1,28))+"\"),\n"
-	cursor.execute(values)
+		cursor.execute(values)
+
 	db.commit()
 	cursor.close()
 
-def junker():
-	#Puts old junk on Prices and new junk on initial Prices
-	initPriceJunk()
-	priceJunk()
-
 def clear():
+	cursor = db.cursor()
 	#Truncates all tables
 	#NOTE: Needs password
 	print("WARNING This will delete ALL data across ALL tables")
-	cursor = db.cursor()
 	password = input("Database Password: ")
 	if(password == "54caf60528"):
 		print("Cleaning Database...")
@@ -134,13 +130,12 @@ def clear():
 	cursor.close()
 
 def testClear():
-	print("WARNING Attempting to delete all test data, but may have unintended consequences")
 	cursor = db.cursor()
+	print("WARNING Attempting to delete all test data, but may have unintended consequences")
 	password = input("Proceed? (Y/N): ")
 	if(password == "Y" or password == "y"):
 		print("Cleaning Test Data...")
 		cursor.execute("DELETE FROM Prices WHERE location_id < 0 OR unleaded_price < 0 OR premium_price < 0;")
-		cursor.execute("DELETE FROM Initial_Prices WHERE location_id < 0 OR unleaded_price < 0 OR premium_price < 0;")
 		cursor.execute("DELETE FROM Price_History WHERE location_id < 0 OR unleaded_price < 0 OR premium_price < 0;")
 		cursor.execute("DELETE FROM Legacy_Price_History WHERE location_id < 0 OR unleaded_price < 0 OR premium_price < 0;")
 		print("Success!")
@@ -155,11 +150,14 @@ def fullTest():
 	print("WARNING This test will insert test data, but may have unintended consequences")
 	password = input("Proceed? (Y/N): ")
 	if(password == "Y" or password == "y"):
-		print("Inserting Data...")
-		junker()
-		print("Success!")
-		print("Transferring Data to History...")
-		priceHistoryCreation()
+		for x in range(1,20):
+			print("Inserting Data...")
+			priceJunk()
+			print("Success!")
+			print("Transferring Data to History...")
+			priceHistoryCreation()
+			print("Success!")
+		print("Transferring Data to Legacy...")
 		legacyDataCreation()
 		print("Success!")
 		testClear()
@@ -217,6 +215,7 @@ def gas(zipcode, minPrice, maxPrice, gasType):
 	cursor.close()
 	data = "\n".join(result)
 	cache.set("gas", data)
+	zeUberFunction()
 	return data
 
 @app.route("/")
