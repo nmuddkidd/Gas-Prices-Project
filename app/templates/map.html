@@ -333,18 +333,6 @@ html, body {
 		} else {
 			fuelType = 2;
 		}
-
-        $.ajax({
-            url: '/process',
-            type: 'POST',
-            data: { 'zipcode': userZipcode, 'minPrice': minPrice, 'maxPrice': maxPrice, 'fuelType': fuelType },
-            success: function(response) {
-                document.getElementById('testingOutput').innerHTML = response;
-            },
-            error: function(error) {
-                console.log(error);
-            }
-        });
     }
 
 	function testingZipcode() {
